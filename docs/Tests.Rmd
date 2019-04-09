@@ -1,0 +1,148 @@
+---
+title: 'TestThat Tests Documentation'
+author: 'Ammar Hasan 150454388'
+date: '20 November 2018'
+header-includes:
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+
+output: bookdown::pdf_document2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '..')
+```
+
+```{r load_project, echo=FALSE, message=FALSE}
+library(ProjectTemplate)
+load.project()
+```
+
+\newpage
+
+# Introduction
+This document documents the testing carried on the Data Preparation phase functions using TestHat. The tests consisted of test_that blocks with test_that functions in two files:
+
+* 1Cleaning.R for testing functions involved with cleaning the data.
+* 2AggregationMerge.R for testing functions involved with aggregating and merging data
+
+Both files are in the tests directory of the ProjectTemplate project file structure.
+
+# Tests
+
+## Cleaning Functions Tests
+
+### Archetype Cleaning
+
+```{r read-chunk, echo=FALSE}
+read_chunk('./tests/1Cleaning.R')
+```
+
+```{r archetypes-clean}
+<<archtypes-clean-tests>>
+```
+
+These tests ensure that the archetypeClean() method carries its tasks described in the Data Preparation report, ensuring:
+
+* That fields that are not needed are removed 
+* The ID format is appropriate and will not cause any issues with the joins
+
+\newpage
+
+### Questions Cleaning
+
+```{r questions-clean}
+<<questions-clean-tests>>
+```
+
+These tests ensure that the questionsClean() method carries its tasks described in the Data Preparation report, ensuring:
+
+* That fields that are not needed are removed 
+* The ID format is appropriate and will not cause any issues with the joins
+* Date formats are fixed to date for future comparisons
+* Correct field format is logical for logical operations
+* No empty IDs after cleaning
+
+\newpage
+
+### Steps Cleaning
+
+```{r steps-clean}
+<<steps-clean-tests>>
+```
+
+These tests ensure that the stepsClean() method carries its tasks described in the Data Preparation report, ensuring:
+
+* That fields that are not needed are removed 
+* The ID format is appropriate and will not cause any issues with the joins
+* Date formats are fixed to date for future comparisons
+
+\newpage
+
+### Enrol Cleaning
+
+```{r enrol-clean}
+<<enrol-clean-tests>>
+```
+
+These tests ensure that the enrolClean() method carries its tasks described in the Data Preparation report, ensuring:
+
+* That fields that are not needed are removed 
+* The ID format is appropriate and will not cause any issues with the joins
+* - - factor level is removed in favor of Not Detected
+
+\newpage
+
+## Aggregation and Merge Functions Tests
+
+### Steps Aggregation 
+
+```{r read-chunk2, echo=FALSE}
+read_chunk('./tests/2AggregationMerge.R')
+```
+
+```{r steps-aggregate-tests}
+<<steps-aggregate-tests>>
+```
+
+These tests ensure that the stepsAgg() method carries its tasks described in the Data Preparation report, ensuring:
+
+* The new aggregated fields (week completed steps) are created
+* Completed steps cannot somehow exceed actual steps in week
+* No NAs are left after aggregation 
+* IDs are still unique after aggregation
+
+\newpage
+
+### Questions Aggregation 
+
+```{r questions-aggregate-tests}
+<<questionss-aggregate-tests>>
+```
+
+These tests ensure that the questionsAgg() method carries its tasks described in the Data Preparation report, ensuring:
+
+* The new aggregated fields (week total marks and attempts) are created
+* No NAs are left after aggregation 
+* IDs are still unique after aggregation
+
+\newpage
+
+### Merge 
+
+```{r merge-tests}
+<<merge-tests>>
+```
+
+These tests ensure that the mergeDfs() and countryMergeDfs methods carry their tasks described in the Data Preparation report, ensuring:
+
+* No NAs are left after merge 
+* IDs are still unique after merge
+
+\newpage
+
+# Running the Tests
+
+To run all the tests in the suite use the test.project() function after loading the Project Template Library (library(ProjectTemplate)) and loading the project (project.load()). Make sure the working directory is set to the project root and that Project Template is installed (install.packages(ProjectTemplate)).

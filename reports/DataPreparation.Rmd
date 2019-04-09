@@ -1,0 +1,192 @@
+---
+title: "Data Preparation"
+author: "Ammar Hasan 150454388"
+date: "20 November 2018"
+fig_caption: yes
+
+header-includes:
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+
+output: bookdown::pdf_document2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '..')
+```
+
+```{r load_project, echo=FALSE, message=FALSE}
+library(ProjectTemplate)
+load.project()
+```
+
+\newpage
+
+# Introduction
+
+This report summaries the Data Preparation stage of the CRISP-DM cycle for this project. In particular, this report covers the background of the data and how it was modified for further analysis (selection, cleaning, transforms, etc.).
+
+# Data Background
+
+The data as stated in the Business Understanding report is collected from a online learning program by Newcastle University on Cyber Security hosted in Future Learn. The collected data on the users is anonymised and is collected for the 7 runs of the program. The data used for this project is derived from the last run for questions responses, archetype survey and step activity tables. The last run was only selected to attempt to limit the differences in field counts and types between tables.
+
+# Dataset Description
+
+This section describes the dataset that was constructed for some of the Data Understanding phase steps field by field, and with other preprocessing highlights.
+
+## Fields 
+
+### learner-id
+
+This is the field used to uniquely identify learners from the online program throughout the data (used to help join the cleaned tables together).
+
+### archetype
+
+This field is derived from the archetype field from the archetype survey table and is used to represent the type of learner a user is according to their responses. 
+
+### week-completed-tasks
+
+There are 3 fields of this variation for each week, and they represent the completed tasks for the users in a given week. This is derived from the step activity table.
+
+### week-total-marks
+
+There are 3 fields of this variation for each week, and they represent the total marks gained (1 for each correct answer) for all attempts on questions for the users in a given week. This is derived from the question response table.
+
+### week-total-attempts
+
+There are 3 fields of this variation for each week, and they represent the total attempts on all questions for the users in a given a week. This is derived from the question response table.
+
+## Table Preprocessing
+
+### Archetype Survey Table Cleaning
+
+```{r read-chunk, echo=FALSE}
+read_chunk('./lib/helpers.R')
+```
+
+```{r archetypes-clean}
+<<archetypes-clean>>
+```
+
+* The response field and an id field (not the learner id) are removed since they will not be used in future analysis
+* The learner id is converted to character format to avoid join issues.
+
+\newpage
+
+### Question Response Table Cleaning
+
+```{r questions-clean}
+<<questions-clean>>
+```
+
+* The cloze response field and the question type field (not the learner id) are removed since one is empty and the other is completely identical for all rows. Redudant quiz number field is also removed.
+* The learner id is converted to character format to avoid join issues. 
+* The date formats are also fixed to date and NAs removed for later use.
+* Fields with empty ids removed
+
+\newpage
+
+### Step Activity Table Cleaning
+
+```{r steps-clean}
+<<steps-clean>>
+```
+
+* The redundant step field is removed since it can be represented by the week number and step number fields. 
+* The learner id is converted to character format to avoid join issues. 
+* The date formats are also fixed to date for later use.
+
+\newpage 
+
+## Aggregation
+
+```{r generic-agg}
+<<generic-agg>>
+```
+
+To help with aggregation a generic aggregation function was created to do a left join for the 3 aggregations (on learner id) done by a function passed to it. Also, removes NAs for zeros. 
+
+### Question Response Table Aggregation
+
+```{r questions-aggergate}
+<<questions-agg>>
+```
+
+* A function is constructed to aggregate question by passing a call to generic aggregate with another function which aggregates for a given week. 
+* The week aggregation functions aggregates using dplyr aggregate function to find total marks (sum) and attempts (length).
+* The attempts and marks are unpacked from one another. 
+
+### Step Activity Table Aggregation
+
+```{r steps-agg}
+<<steps-agg>>
+```
+
+* A function is constructed to aggregate steps by passing a call to generic aggregate with another function which aggregates for a given week.
+* The week aggregation functions aggregates using dplyr aggregate function to find total steps completed (sum of non NA completed at dates).
+
+\newpage 
+
+## Merge
+
+```{r merge1}
+<<merge>>
+```
+
+* To finally join all the cleaned and/or aggregated tables this function is called which uses left joins on learner id to join the cleaned and aggregated datasets. 
+* 0 is used to replace NA attempts/questions/steps and 'Unspecified' is used to replace NA archetypes. 
+
+## Munge Preprocessing Script
+
+```{r read-chunk2, echo=FALSE}
+read_chunk('./munge/01-DataPreparation.R')
+```
+
+```{r preprocessing1}
+<<preprocessing1>>
+```
+
+This simply calls the appropriate cleaning, aggregation and then merge functions described in this report when ProjectTemplate is loaded.
+
+# Summary
+
+To summarise, the Data Preparation stage in this project forms a dataset for analysis using cleaning, aggregation and merge functions run on the archetype, questions and step activity datasets. The functions are all ran using a preprocessing script that is loaded when ProjectTemplate is.
+
+\newpage 
+
+# Second Cycle
+
+## Introduction and New Field
+
+In the second cycle it was decided to introduce country data from the enrolment data table for the 7th run. One new fields was added to the final dataset:
+
+* detected_country: the country that was detected for a users
+
+## New Cleaning Method
+
+```{r enrol-clean}
+<<enrol-clean>>
+```
+
+* Removes fields that will not be used (gender, employment, etc)
+* Replaces - - factor level with Not Detected
+* The learner id is converted to character format to avoid join issues.
+
+## New Merge Method
+
+```{r merge2}
+<<merge>>
+```
+
+* Similar to other merge (joins cycle 1 final dataset by learner id) 
+* Drops fields with NA 
+
+## Munge Preprocessing Script
+
+```{r preprocessing2}
+<<preprocessing1>>
+```
+
+Similarily to last time, clean then merge.
